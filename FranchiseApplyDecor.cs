@@ -2,6 +2,7 @@
 using KitchenData;
 using KitchenMods;
 using System.Collections.Generic;
+using System.Linq;
 using Unity.Collections;
 using Unity.Entities;
 using UnityEngine;
@@ -11,6 +12,68 @@ namespace KitchenHQDecor
     public class FranchiseApplyDecor : FranchiseSystem, IModSystem
     {
         EntityQuery ChangeDecorEvents;
+
+        List<Vector3> Positions
+        {
+            get 
+            {
+                List<Vector3> positions = new List<Vector3>(LobbyPositionAnchors.Bedrooms);
+                positions.AddRange(new List<Vector3>()
+                {
+                    LobbyPositionAnchors.Contracts,
+                    LobbyPositionAnchors.StartMarker,
+                    LobbyPositionAnchors.Kitchen,
+                    GetFrontDoor(),
+                    LobbyPositionAnchors.Office,
+                    LobbyPositionAnchors.Stats + Vector3.back,
+                    LobbyPositionAnchors.Workshop
+                });
+                return positions;
+
+            }
+        }
+
+        List<int> FloorPrefs
+        {
+            get
+            {
+                return new List<int>()
+                {
+                    Main.PrefManager.Get<int>(Main.BEDROOM1_FLOOR_ID),
+                    Main.PrefManager.Get<int>(Main.BEDROOM2_FLOOR_ID),
+                    Main.PrefManager.Get<int>(Main.BEDROOM3_FLOOR_ID),
+                    Main.PrefManager.Get<int>(Main.BEDROOM4_FLOOR_ID) ,
+                    Main.PrefManager.Get<int>(Main.CONTRACTS_FLOOR_ID) ,
+                    Main.PrefManager.Get<int>(Main.GARAGE_FLOOR_ID) ,
+                    Main.PrefManager.Get<int>(Main.KITCHEN_FLOOR_ID) ,
+                    Main.PrefManager.Get<int>(Main.LOCATIONS_FLOOR_ID) ,
+                    Main.PrefManager.Get<int>(Main.OFFICE_FLOOR_ID) ,
+                    Main.PrefManager.Get<int>(Main.STATS_FLOOR_ID) ,
+                    Main.PrefManager.Get<int>(Main.WORKSHOP_FLOOR_ID)
+                };
+            }
+        }
+
+        List<int> WallPrefs
+        {
+            get
+            {
+                return new List<int>()
+                {
+                    Main.PrefManager.Get<int>(Main.BEDROOM1_WALL_ID),
+                    Main.PrefManager.Get<int>(Main.BEDROOM2_WALL_ID),
+                    Main.PrefManager.Get<int>(Main.BEDROOM3_WALL_ID),
+                    Main.PrefManager.Get<int>(Main.BEDROOM4_WALL_ID) ,
+                    Main.PrefManager.Get<int>(Main.CONTRACTS_WALL_ID) ,
+                    Main.PrefManager.Get<int>(Main.GARAGE_WALL_ID) ,
+                    Main.PrefManager.Get<int>(Main.KITCHEN_WALL_ID) ,
+                    Main.PrefManager.Get<int>(Main.LOCATIONS_WALL_ID) ,
+                    Main.PrefManager.Get<int>(Main.OFFICE_WALL_ID) ,
+                    Main.PrefManager.Get<int>(Main.STATS_WALL_ID) ,
+                    Main.PrefManager.Get<int>(Main.WORKSHOP_WALL_ID)
+                };
+            }
+        }
 
         protected override void Initialise()
         {
@@ -24,34 +87,20 @@ namespace KitchenHQDecor
             if (!ChangeDecorEvents.IsEmpty && !Main.HasPreferenceChanged)
                 return;
             Main.HandleChange();
-            Dictionary<int, int> selectedFloors = new Dictionary<int, int>()
+            Dictionary<int, int> selectedFloors = new Dictionary<int, int>();
+            Dictionary<int, int> selectedWallpapers = new Dictionary<int, int>();
+
+            var prefs = FloorPrefs.Zip(WallPrefs, (f, w) => new { Floor = f, Wall = w });
+            var zipped = Positions.Zip(prefs, (pos, pref) => new { Pos = pos, Prefs = pref });
+
+            foreach (var item in zipped)
             {
-                { GetTile(new Vector3(8f, 0f, 6f)).RoomID, Main.PrefManager.Get<int>(Main.BEDROOM1_FLOOR_ID) },
-                { GetTile(new Vector3(8f, 0f, 3f)).RoomID, Main.PrefManager.Get<int>(Main.BEDROOM2_FLOOR_ID) },
-                { GetTile(new Vector3(8f, 0f, 0f)).RoomID, Main.PrefManager.Get<int>(Main.BEDROOM3_FLOOR_ID) },
-                { GetTile(new Vector3(8f, 0f, -3f)).RoomID, Main.PrefManager.Get<int>(Main.BEDROOM4_FLOOR_ID) },
-                { GetTile(new Vector3(-4f, 0f, 5f)).RoomID, Main.PrefManager.Get<int>(Main.CONTRACTS_FLOOR_ID) },
-                { GetTile(new Vector3(-8f, 0f, -6f)).RoomID, Main.PrefManager.Get<int>(Main.GARAGE_FLOOR_ID) },
-                { GetTile(new Vector3(1f, 0f, 6f)).RoomID, Main.PrefManager.Get<int>(Main.KITCHEN_FLOOR_ID) },
-                { GetTile(new Vector3(0f, 0f, 0f)).RoomID, Main.PrefManager.Get<int>(Main.LOCATIONS_FLOOR_ID) },
-                { GetTile(new Vector3(-1f, 0f, -6f)).RoomID, Main.PrefManager.Get<int>(Main.OFFICE_FLOOR_ID) },
-                { GetTile(new Vector3(7f, 0f, -6f)).RoomID, Main.PrefManager.Get<int>(Main.STATS_FLOOR_ID) },
-                { GetTile(new Vector3(-8f, 0f, 1f)).RoomID, Main.PrefManager.Get<int>(Main.WORKSHOP_FLOOR_ID) }
-            };
-            Dictionary<int, int> selectedWallpapers = new Dictionary<int, int>()
-            {
-                { GetTile(new Vector3(8f, 0f, 6f)).RoomID, Main.PrefManager.Get<int>(Main.BEDROOM1_WALL_ID) },
-                { GetTile(new Vector3(8f, 0f, 3f)).RoomID, Main.PrefManager.Get<int>(Main.BEDROOM2_WALL_ID) },
-                { GetTile(new Vector3(8f, 0f, 0f)).RoomID, Main.PrefManager.Get<int>(Main.BEDROOM3_WALL_ID) },
-                { GetTile(new Vector3(8f, 0f, -3f)).RoomID, Main.PrefManager.Get<int>(Main.BEDROOM4_WALL_ID) },
-                { GetTile(new Vector3(-4f, 0f, 5f)).RoomID, Main.PrefManager.Get<int>(Main.CONTRACTS_WALL_ID) },
-                { GetTile(new Vector3(-8f, 0f, -6f)).RoomID, Main.PrefManager.Get<int>(Main.GARAGE_WALL_ID) },
-                { GetTile(new Vector3(1f, 0f, 6f)).RoomID, Main.PrefManager.Get<int>(Main.KITCHEN_WALL_ID) },
-                { GetTile(new Vector3(0f, 0f, 0f)).RoomID, Main.PrefManager.Get<int>(Main.LOCATIONS_WALL_ID) },
-                { GetTile(new Vector3(-1f, 0f, -6f)).RoomID, Main.PrefManager.Get<int>(Main.OFFICE_WALL_ID) },
-                { GetTile(new Vector3(7f, 0f, -6f)).RoomID, Main.PrefManager.Get<int>(Main.STATS_WALL_ID) },
-                { GetTile(new Vector3(-8f, 0f, 1f)).RoomID, Main.PrefManager.Get<int>(Main.WORKSHOP_WALL_ID) }
-            };
+                int roomID = GetTile(item.Pos).RoomID;
+                if (selectedFloors.ContainsKey(roomID))
+                    continue;
+                selectedFloors.Add(roomID, item.Prefs.Floor);
+                selectedWallpapers.Add(roomID, item.Prefs.Wall);
+            }
 
             using NativeArray<Entity> entities = ChangeDecorEvents.ToEntityArray(Allocator.Temp);
             using NativeArray<CChangeDecorEvent> changeDecorEvents = ChangeDecorEvents.ToComponentDataArray<CChangeDecorEvent>(Allocator.Temp);

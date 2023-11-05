@@ -3,9 +3,7 @@ using Kitchen;
 using KitchenData;
 using KitchenMods;
 using PreferenceSystem;
-using System;
 using System.Collections.Generic;
-using System.Drawing.Text;
 using System.Linq;
 using System.Reflection;
 using UnityEngine;
@@ -17,7 +15,7 @@ namespace KitchenHQDecor
     {
         public const string MOD_GUID = $"IcedMilo.PlateUp.{MOD_NAME}";
         public const string MOD_NAME = "HQ Decor";
-        public const string MOD_VERSION = "0.1.0";
+        public const string MOD_VERSION = "0.1.1";
 
         public const string BEDROOM1_FLOOR_ID = "bedroom1Floor";
         public const string BEDROOM1_WALL_ID = "bedroom1Wall";
